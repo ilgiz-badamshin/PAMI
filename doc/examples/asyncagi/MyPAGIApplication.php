@@ -41,10 +41,11 @@
  * limitations under the License.
  *
  */
-use PAGI\Application\PAGIApplication;
 use PAGI\Client\ChannelStatus;
 use PAGI\CallSpool\CallFile;
 use PAGI\CallSpool\Impl\CallSpoolImpl;
+use PAMI\AsyncAgi\Application\PAGIAsyncApplication;
+
 declare(ticks=1);
 /**
  * PAGI basic use example. Please see run.sh in this same directory for an
@@ -71,7 +72,7 @@ declare(ticks=1);
  * @license    http://www.noneyet.ar/ Apache License 2.0
  * @link       http://www.noneyet.ar/
  */
-class MyPAGIApplication extends PAGIApplication
+class MyPAGIApplication extends PAGIAsyncApplication
 {
     /**
      * (non-PHPdoc)
@@ -93,9 +94,7 @@ class MyPAGIApplication extends PAGIApplication
     public function log($msg)
     {
         $agi = $this->getAgi();
-        if ($this->logger->isDebugEnabled()) {
-            $this->logger->debug($msg);
-        }
+        $this->logger->debug($msg);
         $agi->consoleLog($msg);
     }
 

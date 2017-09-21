@@ -1,7 +1,7 @@
 <?php
 //declare(ticks=1);
 /**
- * PAMI basic use example.
+ * PAMI basic use example for asteriks 12 version and up.
  *
  * PHP Version 5
  *
@@ -47,10 +47,6 @@ date_default_timezone_set('America/Buenos_Aires');
 use PAMI\Client\Impl\ClientImpl;
 use PAMI\Listener\IEventListener;
 use PAMI\Message\Event\EventMessage;
-use PAMI\Message\Action\AGIAction;
-use PAMI\Message\Event\NewextenEvent;
-use PAGI\Application\PAGIApplication;
-use PAGI\Client\AbstractClient;
 
 require_once __DIR__ . '/MyPAGIApplication.php';
 
@@ -62,40 +58,41 @@ class ListenerTest implements IEventListener
 
     public function handle(EventMessage $event)
     {
-        if ($event instanceof \PAMI\Message\Event\AsyncAGIEvent) {
-            if ($event->getSubEvent() == 'Start') {
-                switch ($pid = pcntl_fork()) {
-                    case 0:
-                        $this->_client = new ClientImpl($this->_pamiOptions);
-                        $this->_client->open();
-                        $agi = new \PAMI\AsyncAgi\AsyncClientImpl(array(
-                            'pamiClient' => $this->_client,
-                            'asyncAgiEvent' => $event
-                        ));
-                        $app = new MyPAGIApplication(array(
-                            'pagiClient' => $agi
-                        ));
-                        $app->init();
-                        $app->run();
-                        //$agi->indicateProgress();
-                        //$agi->answer();
-                        //$agi->streamFile('welcome');
-                        //$agi->playCustomTones(array("425/50","0/50"));
-                        //sleep(5);
-                        //$agi->indicateCongestion(10);
-                        //$agi->hangup();
+        if ($event instanceof \PAMI\Message\Event\AsyncAGIStartEvent) {
+            switch ($pid = pcntl_fork()) {
+                case 0:
+                    $this->_client = new ClientImpl($this->_pamiOptions);
+                    $this->_client->open();
+                    $agi = new \PAMI\AsyncAgi\AsyncClientImpl(array(
+                        'pamiClient' => $this->_client,
+                        'asyncAgiEvent' => $event
+                    ));
+                    $app = new MyPAGIApplication(array(
+                        'pagiClient' => $agi
+                    ));
+                    $app->init();
+                    $app->run();
+                    //$agi->indicateProgress();
+                    //$agi->answer();
+                    //$agi->streamFile('welcome');
+                    //$agi->playCustomTones(array("425/50","0/50"));
+                    //sleep(5);
+                    //$agi->indicateCongestion(10);
+                    //$agi->hangup();
 
-                        $this->_client->close();
-                        echo "Application finished\n";
-                        exit(0);
-                        break;
-                    case -1:
-                        echo "Could not fork application\n";
-                        break;
-                    default:
-                        echo "Forked Application\n";
-                        break;
-                }
+
+                    // if you want to return control to dialplan after AGI(agi:async) uncomment next line
+                    //$agi->asyncBreak();
+                    $this->_client->close();
+                    echo "Application finished\n";
+                    exit(0);
+                    break;
+                case -1:
+                    echo "Could not fork application\n";
+                    break;
+                default:
+                    echo "Forked Application\n";
+                    break;
             }
         }
     }

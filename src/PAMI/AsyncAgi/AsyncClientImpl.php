@@ -30,6 +30,8 @@ namespace PAMI\AsyncAgi;
 use PAMI\Client\IClient as PamiClient;
 use PAGI\Client\AbstractClient as PagiClient;
 use PAMI\Listener\IEventListener;
+use PAMI\Message\Event\AsyncAGIEvent;
+use PAMI\Message\Event\AsyncAGIExecEvent;
 use PAMI\Message\Event\EventMessage;
 use PAGI\Client\Result\Result;
 use Psr\Log\LoggerInterface;
@@ -46,7 +48,7 @@ use Psr\Log\NullLogger;
  * @license  http://marcelog.github.com/PAMI/ Apache License 2.0
  * @link     http://marcelog.github.com/PAMI/
  */
-class AsyncClientImpl extends PagiClient implements IEventListener
+class AsyncClientImpl extends PagiClient implements IEventListener, IAsyncClient
 {
     /**
      * The pami client to be used.
@@ -55,7 +57,7 @@ class AsyncClientImpl extends PagiClient implements IEventListener
     private $pamiClient;
     /**
      * The event that originated this async agi request.
-     * @var \PAMI\Message\Event\AsyncAGIEvent
+     * @var IAsyncAgiStartEvent
      */
     private $asyncAgiEvent;
     /**
@@ -91,7 +93,7 @@ class AsyncClientImpl extends PagiClient implements IEventListener
      */
     public function handle(EventMessage $event)
     {
-        if ($event instanceof \PAMI\Message\Event\AsyncAGIEvent) {
+        if ($event instanceof IAsyncAgiExecEvent) {
             if ($event->getCommandId() == $this->lastCommandId) {
                 $this->lastAgiResult = trim($event->getResult());
             }
@@ -166,5 +168,15 @@ class AsyncClientImpl extends PagiClient implements IEventListener
         $this->pamiClient = $options['pamiClient'];
         $this->asyncAgiEvent = $options['asyncAgiEvent'];
         $this->open();
+    }
+
+
+    /**
+     * (non-PHPdoc)
+     * @see PAMI\AsyncAgi.IAsyncClient::asyncBreak()
+     */
+    public function asyncBreak()
+    {
+        $this->send('ASYNCAGI BREAK');
     }
 }
